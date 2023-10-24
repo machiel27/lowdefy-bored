@@ -1,0 +1,93 @@
+id:   view-activities
+type: PageHeaderMenu
+
+requests:
+  - id: get_activities
+    type: MongoDBAggregation
+    connectionId: bored-activities
+    properties:
+      pipeline:
+        - $sort:
+            name: 1
+  - id: update_activity
+    type: MongoDBUpdateOne
+    connectionId: bored-activities
+    payload:
+      activity_id:
+        _state: selected_row.row._id
+    properties:
+      filter:
+        _id:
+          _payload: activity_id    
+      update:
+        $set:
+          completed: yes
+events:
+  onMount:
+    - id: fetch_activities
+      type: Request
+      params: get_activities
+
+properties:
+  title: View Activities
+
+layout:
+  contentJustify: center
+blocks:
+  - id: content_card
+    type: Card
+    layout:
+      size: 1000
+      contentGutter: 28
+    blocks:
+      - id: page_heading
+        type: Title
+        properties:
+          content: View Activities
+          level: 3
+      - id: page_sub
+        type: Title
+        properties:
+          content: You can click on an Activity to mark it as complete
+          level: 5
+      - id: view_activities_table
+        type: AgGridBalham
+        properties:
+          enableCellTextSelection: true
+          pagination: true
+          rowData:
+            _request: get_activities
+          defaultColDef:
+            sortable: true
+            resizable: true
+            filter: true
+          columnDefs:
+            - headerName: Title
+              field: activity
+              width: 400
+              filter: false
+            - headerName: Activity Type
+              field: type
+              width: 200
+              filter: true
+            - headerName: Participants
+              field: participants
+              width: 150
+              filter: false
+            - headerName: Completed
+              field: completed
+              width: 200
+              filter: false
+        events:
+          onRowClick:
+            - id: set_selected
+              type: SetState
+              params:
+                selected_row:
+                  _event: true
+            - id: set_activity
+              type: Request
+              params: update_activity
+            - id: fetch_activities
+              type: Request
+              params: get_activities

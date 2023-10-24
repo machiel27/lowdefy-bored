@@ -1,0 +1,37 @@
+
+lowdefy: 4.0.0-rc.11
+name: Not Bored
+
+connections:
+  - id: bored_api
+    type: AxiosHttp
+    properties:
+      baseURL: https://www.boredapi.com/api/
+  - id: bored-activities
+    type: MongoDBCollection
+    properties:
+      databaseUri:
+        _secret: MONGODB_URI
+      databaseName: boredom-fighter
+      collection: activities
+      write: true
+
+menus:
+  - id: default
+    links:
+      - id: get_activity
+        type: MenuLink
+        properties:
+          icon: AiOutlineAlert
+          title: Search
+        pageId: get_activity
+      - id: view-activities
+        type: MenuLink
+        properties:
+          icon: AiOutlineDatabase
+          title: View Activities
+        pageId: view-activities
+
+pages:
+  - _ref: get-activity.yaml
+  - _ref: view-activities.yaml

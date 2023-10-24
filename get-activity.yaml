@@ -1,0 +1,120 @@
+id: get_activity
+type: PageHeaderMenu
+
+requests:
+  - id: get_activity
+    type: AxiosHttp
+    connectionId: bored_api
+    properties:
+      url: activity/
+  - id: save_activity
+    type:  MongoDBInsertOne
+    connectionId: bored-activities
+    payload:
+      new_activity:
+        _state: activity
+    properties:
+      doc:
+        activity:
+          _payload: new_activity.activity
+        type:
+          _payload: new_activity.type
+        participants:
+          _payload: new_activity.participants
+        completed: no  
+
+properties:
+  title: Search
+layout:
+  contentJustify: center
+
+blocks:
+  - id: content_card
+    type: Card
+    layout:
+      size: 800
+      contentGutter: 16
+    blocks:
+      - id: page_heading
+        type: Title
+        properties:
+          content: Press this button to fight boredom!
+          level: 3
+      - id: activity_button
+        type: Button
+        layout:
+          align: middle
+        properties:
+          icon: AiFillBulb
+          shape: round
+          size: large
+          title: Idea
+        events:
+          onClick:
+            - id: fetch_activity
+              type: Request
+              params: get_activity
+            - id: set_data
+              type: SetState
+              params:
+                activity:
+                  _request: get_activity.data
+                display: true
+      
+      - id: activity_card
+        type: Card
+        visible:
+          _eq:
+            - _state: display
+            - true
+        properties: 
+          title: What to do
+        blocks:
+          - id: act_tag
+            type: Tag
+            properties:
+              title: Activity
+              icon: MdRocketLaunch
+          - id: act_text
+            type: Paragraph
+            properties:
+              strong: true
+              content:
+                _state: activity.activity 
+          - id: type_tag
+            type: Tag
+            properties:
+              title: Type
+              icon: MdBuild
+          - id: type_text
+            type: Paragraph
+            properties:
+              strong: true
+              content:
+                _state: activity.type
+          - id: part_tag
+            type: Tag
+            properties:
+              title: Participants
+              icon: MdAccessibility
+          - id: part_text
+            type: Paragraph
+            properties:
+              strong: true
+              content:
+                _state: activity.participants  
+          - id: activity_button
+            type: Button
+            layout:
+              align: middle
+            properties:
+              icon: MdFavorite
+              shape: round
+              size: large
+              title: Add to my ToDo List
+              color: "#20ec85"
+            events:
+              onClick:
+                - id: add_activity
+                  type: Request
+                  params: save_activity
